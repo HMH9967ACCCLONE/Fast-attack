@@ -1,0 +1,109 @@
+local player = game:GetService("Players").LocalPlayer
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("ReplicatedStorage")
+
+local running = false
+local attackThread
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "OwnerGui"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 250, 0, 150)
+frame.Position = UDim2.new(0.5, -125, 0.5, -75)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Parent = gui
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,30)
+title.BackgroundTransparency = 1
+title.Text = "by hmh9967"
+title.TextColor3 = Color3.fromRGB(0,255,120)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.Parent = frame
+
+-- Toggle button
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0.85,0,0,45)
+toggleBtn.Position = UDim2.new(0.075,0,0.45,0)
+toggleBtn.Text = "FAST ATTACK: OFF"
+toggleBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
+toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 16
+toggleBtn.Parent = frame
+
+-- Toggle logic
+toggleBtn.MouseButton1Click:Connect(function()
+	running = not running
+
+	if running then
+		toggleBtn.Text = "FAST ATTACK: ON"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
+
+		attackThread = task.spawn(function()
+			while running do
+				local char = player.Character
+				if char and char:FindFirstChild("Shovel") then
+					local args = {
+						char:WaitForChild("Shovel"),
+						os.clock(), -- thời gian động (an toàn hơn)
+						Vector3.new(-0.8644343614578247, -0.46075499057769775, 0.20114195346832275)
+					}
+
+					RS:WaitForChild("Shared")
+					  :WaitForChild("Universe")
+					  :WaitForChild("Network")
+					  :WaitForChild("RemoteEvent")
+					  :WaitForChild("SwingMelee")
+					  :FireServer(unpack(args))
+				end
+				task.wait(0.00000001) -- tốc độ đánh (giảm = nhanh hơn)
+			end
+		end)
+	else
+		toggleBtn.Text = "FAST ATTACK: OFF"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
+	end
+end)
+
+-- Kéo GUI
+local dragging = false
+local dragStart, startPos
+
+frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+	end
+end)
+
+frame.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = false
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
